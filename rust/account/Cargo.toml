@@ -17,10 +17,11 @@ path = "benches/account.rs"
 harness = false
 
 [dependencies.snarkvm-wasm]
-git = "https://github.com/AleoHQ/snarkVM.git"
-branch = "testnet2"
+git = "https://github.com/piotr-roslaniec/snarkVM.git"
+branch = "testnet3-aleo-snap"
+# path = "../../../snarkVM/wasm"
 default-features = false
-features = [ "dpc" ]
+features = [ "dpc", "algorithms" ]
 
 [dev-dependencies.rand]
 version = "0.8.0"

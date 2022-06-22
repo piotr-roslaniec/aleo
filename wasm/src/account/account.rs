@@ -73,11 +73,24 @@ impl Account {
     pub fn to_address(&self) -> String {
         self.account.address().to_string()
     }
+
+    #[wasm_bindgen]
+    pub fn sign(&self, message: &str, rng_seed: &[u8]) -> Vec<u8> {
+        console_error_panic_hook::set_once();
+
+        let message = message.as_bytes();
+        let rng_seed: [u8; 32] = rng_seed.try_into().unwrap();
+        let rng = &mut StdRng::from_seed(rng_seed);
+
+        self.account.sign(message, rng).unwrap()
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    use crate::account::address::Address;
 
     use wasm_bindgen_test::*;
 
@@ -136,5 +149,36 @@ mod tests {
 
         println!("{} == {}", ALEO_ADDRESS, account.to_address());
         assert_eq!(ALEO_ADDRESS, account.to_address());
+    }
+
+    #[wasm_bindgen_test]
+    pub fn test_signature_verification() {
+        let account = Account::from_private_key(ALEO_PRIVATE_KEY);
+        let message = "test message";
+        let rng_seed: &[u8; 32] = b"00000000000000000000000000000001";
+
+        let signature = account.sign(message, rng_seed);
+
+        let address = Address::from_string(&account.to_address());
+        let signature_verification = address.verify_signature(message, signature);
+
+        println!("{} == {}", true, signature_verification);
+        assert!(signature_verification);
+    }
+
+    #[wasm_bindgen_test]
+    pub fn test_signature_failed_verification() {
+        let account = Account::from_private_key(ALEO_PRIVATE_KEY);
+        let message = "test message";
+        let rng_seed: &[u8; 32] = b"00000000000000000000000000000001";
+        let bad_message = "bad message";
+
+        let signature = account.sign(message, rng_seed);
+
+        let address = Address::from_string(&account.to_address());
+        let signature_verification = address.verify_signature(bad_message, signature);
+
+        println!("{} == {}", false, signature_verification);
+        assert!(!signature_verification);
     }
 }

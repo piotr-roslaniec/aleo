@@ -15,5 +15,6 @@
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod account;
-pub mod record;
-pub mod transaction;
+// TODO: Fix these unused modules
+// pub mod record;
+// pub mod transaction;

@@ -14,11 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with the Aleo library. If not, see <https://www.gnu.org/licenses/>.
 
-use aleo_account::{
-    address::Address as AddressNative,
-    private_key::PrivateKey,
-    view_key::{Signature, ViewKey},
-};
+use aleo_account::{Address as AddressNative, PrivateKey, ViewKey};
 
 use std::str::FromStr;
 use wasm_bindgen::prelude::*;
@@ -33,14 +29,14 @@ impl Address {
     #[wasm_bindgen]
     pub fn from_private_key(private_key: &str) -> Self {
         let private_key = PrivateKey::from_str(private_key).unwrap();
-        let address = AddressNative::from(&private_key).unwrap();
+        let address = AddressNative::from(&private_key);
         Self { address }
     }
 
     #[wasm_bindgen]
     pub fn from_view_key(view_key: &str) -> Self {
         let view_key = ViewKey::from_str(view_key).unwrap();
-        let address = AddressNative::from_view_key(&view_key).unwrap();
+        let address = AddressNative::from_view_key(&view_key);
         Self { address }
     }
 
@@ -53,11 +49,12 @@ impl Address {
     /// Verify a signature signed by the view key
     /// Returns `true` if the signature is verified correctly. Otherwise, returns `false`.
     #[wasm_bindgen]
-    pub fn verify(&self, message: &str, signature: &str) -> bool {
-        let signature = Signature::from_str(signature).unwrap();
-        let message = message.as_bytes();
-
-        self.address.verify(&message, &signature).unwrap()
+    pub fn verify_signature(&self, message: &str, signature: Vec<u8>) -> bool {
+        console_error_panic_hook::set_once();
+        
+        self.address
+            .verify_signature_bytes(&message.as_bytes(), &signature)
+            .unwrap()
     }
 
     #[wasm_bindgen]
@@ -72,25 +69,31 @@ mod tests {
 
     use wasm_bindgen_test::*;
 
+    const ALEO_PRIVATE_KEY: &str = "APrivateKey1zkp4md8AREpQMoEmmVG8kAp8qKpgT95o6upA9ZzL2yHYUMM";
+    const ALEO_VIEW_KEY: &str = "AViewKey1oUHFc3G2ioQ1w2uPne162XPpWJ3gbWizmrqiSjmpuyaP";
+    const ALEO_ADDRESS: &str = "aleo1lakxjm562uz3ekufmtnma56m6k4utmg82tgv55zt4tymn8e9v5fq6gsgun";
+
     #[wasm_bindgen_test]
     pub fn from_private_key_test() {
-        let given_private_key = "APrivateKey1tvv5YV1dipNiku2My8jMkqpqCyYKvR5Jq4y2mtjw7s77Zpn";
-        let given_address = "aleo1faksgtpmculyzt6tgaq26fe4fgdjtwualyljjvfn2q6k42ydegzspfz9uh";
+        let address = Address::from_private_key(ALEO_PRIVATE_KEY);
 
-        let address = Address::from_private_key(given_private_key);
-
-        println!("{} == {}", given_address, address.to_string());
-        assert_eq!(given_address, address.to_string());
+        println!("{} == {}", ALEO_ADDRESS, address.to_string());
+        assert_eq!(ALEO_ADDRESS, address.to_string());
     }
 
     #[wasm_bindgen_test]
     pub fn from_view_key_test() {
-        let given_view_key = "AViewKey1m8gvywHKHKfUzZiLiLoHedcdHEjKwo5TWo6efz8gK7wF";
-        let given_address = "aleo1faksgtpmculyzt6tgaq26fe4fgdjtwualyljjvfn2q6k42ydegzspfz9uh";
+        let address = Address::from_view_key(ALEO_VIEW_KEY);
 
-        let address = Address::from_view_key(given_view_key);
+        println!("{} == {}", ALEO_ADDRESS, address.to_string());
+        assert_eq!(ALEO_ADDRESS, address.to_string());
+    }
 
-        println!("{} == {}", given_address, address.to_string());
-        assert_eq!(given_address, address.to_string());
+    #[wasm_bindgen_test]
+    pub fn from_address_string() {
+        let address = Address::from_string(ALEO_ADDRESS);
+
+        println!("{} == {}", ALEO_ADDRESS, address.to_string());
+        assert_eq!(ALEO_ADDRESS, address.to_string());
     }
 }

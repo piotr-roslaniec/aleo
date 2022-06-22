@@ -6,7 +6,8 @@ This is an unofficial fork of [AleoHQ/aleo](https://github.com/AleoHQ/aleo)
 
 ```bash
 npm login
-wasm-pack build --scope aleohq
+wasm-pack build --target web
+cp template.package.json pkg/package.json
 cd pkg
 npm publish --access=public
 ```
