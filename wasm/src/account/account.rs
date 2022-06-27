@@ -75,14 +75,15 @@ impl Account {
     }
 
     #[wasm_bindgen]
-    pub fn sign(&self, message: &str, rng_seed: &[u8]) -> Vec<u8> {
+    pub fn sign(&self, message: &str, rng_seed: &[u8]) -> Box<[u8]> {
         console_error_panic_hook::set_once();
 
         let message = message.as_bytes();
         let rng_seed: [u8; 32] = rng_seed.try_into().unwrap();
         let rng = &mut StdRng::from_seed(rng_seed);
-
-        self.account.sign(message, rng).unwrap()
+        
+        let signed = self.account.sign(message, rng).unwrap();
+        signed.into_boxed_slice()
     }
 }
 
@@ -160,7 +161,7 @@ mod tests {
         let signature = account.sign(message, rng_seed);
 
         let address = Address::from_string(&account.to_address());
-        let signature_verification = address.verify_signature(message, signature);
+        let signature_verification = address.verify_signature(message, signature.to_vec());
 
         println!("{} == {}", true, signature_verification);
         assert!(signature_verification);
@@ -176,7 +177,7 @@ mod tests {
         let signature = account.sign(message, rng_seed);
 
         let address = Address::from_string(&account.to_address());
-        let signature_verification = address.verify_signature(bad_message, signature);
+        let signature_verification = address.verify_signature(bad_message, signature.to_vec());
 
         println!("{} == {}", false, signature_verification);
         assert!(!signature_verification);
